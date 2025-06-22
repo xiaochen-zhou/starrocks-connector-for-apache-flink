@@ -158,7 +158,7 @@ public class StarRocksCatalog implements Serializable {
                 "table name cannot be null or empty.");
 
         final String tableSchemaQuery =
-                "SELECT `COLUMN_NAME`, `DATA_TYPE`, `ORDINAL_POSITION`, `COLUMN_SIZE`, `DECIMAL_DIGITS`, "
+                "SELECT `COLUMN_NAME`, `DATA_TYPE`, `ORDINAL_POSITION`, `COLUMN_DEFAULT`, `COLUMN_SIZE`, `DECIMAL_DIGITS`, "
                         + "`IS_NULLABLE`, `COLUMN_KEY`, `COLUMN_COMMENT` FROM `information_schema`.`COLUMNS` "
                         + "WHERE `TABLE_SCHEMA`=? AND `TABLE_NAME`=?;";
 
@@ -174,6 +174,7 @@ public class StarRocksCatalog implements Serializable {
                         String name = resultSet.getString("COLUMN_NAME");
                         String type = resultSet.getString("DATA_TYPE");
                         Integer size = resultSet.getInt("COLUMN_SIZE");
+                        String defaultValue = resultSet.getString("COLUMN_DEFAULT");
                         if (resultSet.wasNull()) {
                             size = null;
                         }
@@ -201,6 +202,7 @@ public class StarRocksCatalog implements Serializable {
                                                 isNullable == null
                                                         || !isNullable.equalsIgnoreCase("NO"))
                                         .setColumnComment(comment)
+                                        .setDefaultValue(defaultValue)
                                         .build();
                         columns.add(column);
 
@@ -236,7 +238,7 @@ public class StarRocksCatalog implements Serializable {
     }
 
     /**
-     * check if a table exists in this databse.
+     * check if a table exists in this database.
      */
     public boolean tableExists(String database, String table){
         List<String> tableList = executeSingleColumnStatement(
@@ -482,7 +484,7 @@ public class StarRocksCatalog implements Serializable {
             }
         }
         throw new SQLException(
-                String.format("Alter job state for %s.%s does not exsit", databaseName, tableName));
+                String.format("Alter job state for %s.%s does not exist", databaseName, tableName));
     }
 
     private List<String> executeSingleColumnStatement(String sql) throws SQLException {
